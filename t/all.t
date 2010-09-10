@@ -34,7 +34,7 @@ print 'not ' if(grep { $_ < 1 || $_ > 6 || $_ != int($_) } @data);
 print 'ok '.(++$test)." object method: dN returns values in the right range\n";
 
 print 'not ' if(grep { $_ < 1500 || $_ > 1850 } @distrib[1..6]);
-print 'ok '.(++$test)." distribution of dN looks sane\n";
+print 'ok '.(++$test)." distribution of dN looks sane [".join(', ', @distrib[1..6])."]\n";
 
 $die1 = Games::Dice::Advanced->new('d6', 2);
 @data = map { $die1->roll() } (1..10000);
@@ -44,7 +44,7 @@ print 'not ' if(grep { $_ < 2 || $_ > 12 || $_/2 != int($_/2) } @data);
 print 'ok '.(++$test)." M * dN returns values in the right range\n";
 
 print 'not ' if(grep { $_ < 1500 || $_ > 1850 } @distrib[2,4,6,8,10,12]);
-print 'ok '.(++$test)." distribution of M * dN looks sane\n";
+print 'ok '.(++$test)." distribution of M * dN looks sane [".join(', ', @distrib[2,4,6,8,10,12])."]\n";
 
 $die1 = Games::Dice::Advanced->new('2d6');
 @data = map { $die1->roll() } (1..100000);

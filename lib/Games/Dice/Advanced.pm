@@ -60,7 +60,7 @@ sub roll {
     } elsif($self eq 'Games::Dice::Advanced') {
         # called as class method
         @args = ('d6') unless(@args);
-	    return sum(map {
+	    return _sum(map {
 	        (ref($_) && $_->isa('Games::Dice::Advanced')) ?
 	            $_->roll() :
 	            Games::Dice::Advanced->new($_)->roll()
@@ -145,7 +145,7 @@ sub new {
 	    } elsif($recipe =~ /^(\d+)d(\d+)/) {        # INTdINT
 	        my($repeats, $faces) = ($1, $2);
 	        $self = sub {
-	            $mul * sum(map { 1 + int(rand($faces)) } (1..$repeats))
+	            $mul * _sum(map { 1 + int(rand($faces)) } (1..$repeats))
 	        };
 	    } elsif(ref($recipe) eq 'CODE') {
 	        $self = sub { $mul * &{$recipe} }
@@ -163,9 +163,9 @@ sub new {
 
 =cut
 
-sub sum { foldl(sub { shift() + shift(); }, @_); }
+sub _sum { _foldl(sub { shift() + shift(); }, @_); }
 
-sub foldl {
+sub _foldl {
   my($f, $z, @xs) = @_;
   $z = $f->($z, $_) foreach(@xs);
   return $z;
