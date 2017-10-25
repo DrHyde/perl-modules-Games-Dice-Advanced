@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 		NAME	=> 'Games::Dice::Advanced',
     META_MERGE => {
-        license => 'other',
+        license => 'open_source',
         resources => {
 	    repository => 'https://github.com/DrHyde/perl-modules-Games-Dice-Advanced',
 	    bugtracker => 'https://github.com/DrHyde/perl-modules-Games-Dice-Advanced/issues'
