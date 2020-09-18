@@ -4,3 +4,5 @@ README
 MANIFEST
 Makefile.PL
 MANIFEST.SKIP
+t/pod-coverage.t
+t/pod.t
