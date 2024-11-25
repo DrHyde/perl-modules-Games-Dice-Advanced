@@ -75,6 +75,7 @@ $die1 = Games::Dice::Advanced->new(sub { int(1+rand(4)) ** 2 });
 print 'not ' if(grep { $_ != 1 && $_ != 4 && $_ != 9 && $_ != 16 } @data);
 print 'ok '.(++$test)." sub{} returns correct values\n";
 
+# XXX this test fails with unitinitialized $_
 print 'not ' if(grep { $_ < 2000 || $_ > 3000 } @distrib[1,4,9,16]);
 print 'ok '.(++$test)." distribution of sub{} looks sane\n";
 
