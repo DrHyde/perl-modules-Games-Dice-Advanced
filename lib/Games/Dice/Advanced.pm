@@ -29,6 +29,12 @@ loaded dice
     # create a four-sided die with the squares of 1, 2, 3 and 4
     Games::Dice::Advanced->new(sub { int(1+rand(4)) ** 2 });
 
+    # create a non-numeric die
+    Games::Dice::Advanced->new(sub {
+        my @alphas = qw(C D E F G A B);
+        return $alphas[int rand @alphas];
+    });
+
 =head1 METHODS
 
 =over 4
