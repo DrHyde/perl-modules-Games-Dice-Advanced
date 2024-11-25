@@ -83,7 +83,7 @@ print 'ok '.(++$test)." distribution of sub{} looks sane\n";
 $die1 = Games::Dice::Advanced->new(sub { return 'XYZ' });
 @data = $die1->roll();
 print 'not ' if($data[0] ne 'XYZ');
-print 'ok '.(++$test)." non-numerical sub{} returns correct value\n";
+print 'ok '.(++$test)." non-numeric sub{} returns correct value\n";
 
 # float
 $die1 = Games::Dice::Advanced->new(sub { return 3.14 });
