@@ -148,7 +148,8 @@ sub new {
 	            $mul * _sum(map { 1 + int(rand($faces)) } (1..$repeats))
 	        };
 	    } elsif(ref($recipe) eq 'CODE') {
-	        $self = sub { $mul * &{$recipe} }
+	        my $r = &{$recipe};
+	        $self = $r =~ /^\d+$/ ? sub { $mul * $r } : sub { $r };
 	    } else {
 	        die("$recipe isn't valid");
     	}
