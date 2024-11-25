@@ -79,3 +79,14 @@ print 'ok '.(++$test)." sub{} returns correct values\n";
 print 'not ' if(grep { $_ < 2000 || $_ > 3000 } @distrib[1,4,9,16]);
 print 'ok '.(++$test)." distribution of sub{} looks sane\n";
 
+# non-numeric
+$die1 = Games::Dice::Advanced->new(sub { return 'XYZ' });
+@data = $die1->roll();
+print 'not ' if($data[0] ne 'XYZ');
+print 'ok '.(++$test)." non-numerical sub{} returns correct value\n";
+
+# float
+$die1 = Games::Dice::Advanced->new(sub { return 3.14 });
+@data = $die1->roll();
+print 'not ' if($data[0] != 3.14);
+print 'ok '.(++$test)." floating point sub{} returns correct value\n";
