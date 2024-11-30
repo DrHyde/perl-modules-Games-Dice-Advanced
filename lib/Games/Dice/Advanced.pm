@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use vars qw($VERSION);
 
-$VERSION = '1.1';
+$VERSION = '1.2';
 
 =head1 NAME
 
@@ -194,24 +194,25 @@ randomness are welcome.
 
 Doesn't support dice with fractional or complex numbers of sides :-)
 
+If you find any bugs please report them on Github, preferably with a test case.
+
 =head1 FEEDBACK
 
-I welcome feedback about my code, including constructive criticism.  And,
-while this is free software (both free-as-in-beer and free-as-in-speech) I
-also welcome payment.  In particular, your bug reports will get moved to
-the front of the queue if you buy me something from my wishlist, which can
-be found at L<http://www.cantrell.org.uk/david/shopping-list/wishlist>.
+I welcome feedback about my code, including constructive criticism.
 
-=head1 AUTHOR
+=head1 AUTHOR, COPYRIGHT and LICENCE
 
-David Cantrell E<lt>F<david@cantrell.org.uk>E<gt>
+Copyright 2024 David Cantrell E<lt>F<david@cantrell.org.uk>E<gt>
 
-=head1 COPYRIGHT
+This software is free-as-in-speech software, and may be used,
+distributed, and modified under the terms of either the GNU
+General Public Licence version 2 or the Artistic Licence. It's
+up to you which one you use. The full text of the licences can
+be found in the files GPL2.txt and ARTISTIC.txt, respectively.
 
-Copyright 2003 David Cantrell
+=head1 CONSPIRACY
 
-This module is free-as-in-speech software, and may be used, distributed,
-and modified under the same terms as Perl itself.
+This module is also free-as-in-mason software.
 
 =cut
 
