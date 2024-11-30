@@ -62,15 +62,15 @@ sub roll {
     if(ref($self) && $self->isa('Games::Dice::Advanced')) {
         # called as object method
         die("roll() called incorrectly") if(@args);
-	    return &{$self};
+        return &{$self};
     } elsif($self eq 'Games::Dice::Advanced') {
         # called as class method
         @args = ('d6') unless(@args);
-	    return _sum(map {
-	        (ref($_) && $_->isa('Games::Dice::Advanced')) ?
-	            $_->roll() :
-	            Games::Dice::Advanced->new($_)->roll()
-	    } @args);
+        return _sum(map {
+            (ref($_) && $_->isa('Games::Dice::Advanced')) ?
+                $_->roll() :
+                Games::Dice::Advanced->new($_)->roll()
+        } @args);
     } else {
         die("Out of cucumber error\n");
     }
@@ -138,27 +138,31 @@ sub new {
 
     if(@args == 2) {
         my($recipe, $mul) = @args;
-	    ($recipe, $mul) = ($mul, $recipe) if(ref($mul) || $mul=~ /\D/);
-	    die("Bad arguments to new()") if(ref($mul) || $mul=~ /\D/);
+        ($recipe, $mul) = ($mul, $recipe) if(ref($mul) || $mul=~ /\D/);
+        die("Bad arguments to new()") if(ref($mul) || $mul=~ /\D/);
 
-	    if($recipe !~ /\D/) {                       # constant
-	        # $self = eval("sub { $recipe * $mul }");
-	        $self = sub { $recipe * $mul };
-	    } elsif($recipe =~ /^d(\d+)$/) {            # dINT
+        if($recipe !~ /\D/) {                       # constant
+            $self = sub { $recipe * $mul };
+        } elsif($recipe =~ /^d(\d+)$/) {            # dINT
             # $self = eval("sub { (1 + int(rand($1))) * $mul }");
             my $faces = $1;
             $self = sub { (1 + int(rand($faces))) * $mul };
-	    } elsif($recipe =~ /^(\d+)d(\d+)/) {        # INTdINT
-	        my($repeats, $faces) = ($1, $2);
-	        $self = sub {
-	            $mul * _sum(map { 1 + int(rand($faces)) } (1..$repeats))
-	        };
-	    } elsif(ref($recipe) eq 'CODE') {
-	        my $r = &{$recipe};
-	        $self = $r =~ /^\d+$/ ? sub { $mul * $r } : sub { $r };
-	    } else {
-	        die("$recipe isn't valid");
-    	}
+        } elsif($recipe =~ /^(\d+)d(\d+)/) {        # INTdINT
+            my($repeats, $faces) = ($1, $2);
+            $self = sub {
+                my $random = _sum(map { 1 + int(rand($faces)) } (1..$repeats));
+                $random *= $mul if($mul != 1 && _die_if_not_number($random));
+                return $random
+            };
+        } elsif(ref($recipe) eq 'CODE') {
+            $self = sub {
+                my $random = &{$recipe};
+                $random *= $mul if($mul != 1 && _die_if_not_number($random));
+                return $random;
+            };
+        } else {
+            die("$recipe isn't valid");
+        }
     } else {
         die("new() called incorrectly");
     }
@@ -169,6 +173,11 @@ sub new {
 =back
 
 =cut
+
+sub _die_if_not_number {
+    $_[0] =~ /^-?\d+(\.\d+)?(e\d+)?$/i ||
+        die("Can't multiply a non-numeric value: $_[0]\n");
+}
 
 sub _sum { _foldl(sub { shift() + shift(); }, @_); }
 
