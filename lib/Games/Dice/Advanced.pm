@@ -55,6 +55,10 @@ is called in this way.
 
 When called as an object method, no arguments are permitted.
 
+The recipe may end with a hashref of options, which is passed on to each
+constructor call; see 'new' below.  Dice objects that you pass in keep the
+options they were created with.
+
 =cut
 
 sub roll {
@@ -65,11 +69,12 @@ sub roll {
         return &{$self};
     } elsif($self eq 'Games::Dice::Advanced') {
         # called as class method
+        my $options = _extract_options(\@args);
         @args = ('d6') unless(@args);
         return _sum(map {
             (ref($_) && $_->isa('Games::Dice::Advanced')) ?
                 $_->roll() :
-                Games::Dice::Advanced->new($_)->roll()
+                Games::Dice::Advanced->new($_, (%{$options} ? ($options) : ()))->roll()
         } @args);
     } else {
         die("Out of cucumber error\n");
@@ -110,6 +115,28 @@ and multiplies the results by N when it is rolled.  Compare with NdM above.
 Leading and trailing whitespace is stripped, no other whitespace is allowed
 in any of the above.
 
+The arguments may be followed by a hashref of options.  An options hashref is
+recognised by its keys, which must all be option names, so it can't be mistaken
+for the 'weird dice' hashref described below, whose keys are numbers.  The
+only option at present is:
+
+=over 4
+
+=item rand
+
+A subroutine to use instead of perl's built-in rand().  It is called as
+C<< $rand->($n) >> and must return a number from 0 up to, but not including,
+$n, just as C<rand($n)> does.  Use it to make rolls repeatable:
+
+    my $source = My::Generator->new(seed => 42);
+    my $die = Games::Dice::Advanced->new('3d6', {
+        rand => sub { $source->next_float * shift() }
+    });
+
+It only affects the dN and NdM forms.  Constants and SUBREF dice don't use it.
+
+=back
+
 =over 4
 
 =item SUBREF
@@ -126,8 +153,30 @@ a SUBREF for the moment.
 
 =cut
 
+my %KNOWN_OPTIONS = (rand => 1);
+
+# If the last argument is a hashref whose keys are all option names, remove it
+# from @args and return it as a checked hashref of options.  Otherwise return
+# an empty hashref.
+sub _extract_options {
+    my $args = shift;
+    return {} unless(
+        @{$args} &&
+        ref($args->[-1]) eq 'HASH' &&
+        keys %{$args->[-1]} &&
+        !grep { !$KNOWN_OPTIONS{$_} } keys %{$args->[-1]}
+    );
+    my $options = { %{pop @{$args}} };
+    die("The rand option must be a subroutine reference\n")
+        if(exists($options->{rand}) && ref($options->{rand}) ne 'CODE');
+    return $options;
+}
+
 sub new {
     my($class, @args) = @_;
+
+    my $options = _extract_options(\@args);
+    my $rand = $options->{rand} || sub { rand($_[0]) };
 
     @args = ('d6') unless(@args);
     @args = map { s/(^\s+|\s+$)//; $_; } @args;
@@ -146,11 +195,11 @@ sub new {
         } elsif($recipe =~ /^d(\d+)$/) {            # dINT
             # $self = eval("sub { (1 + int(rand($1))) * $mul }");
             my $faces = $1;
-            $self = sub { (1 + int(rand($faces))) * $mul };
+            $self = sub { (1 + int($rand->($faces))) * $mul };
         } elsif($recipe =~ /^(\d+)d(\d+)/) {        # INTdINT
             my($repeats, $faces) = ($1, $2);
             $self = sub {
-                my $random = _sum(map { 1 + int(rand($faces)) } (1..$repeats));
+                my $random = _sum(map { 1 + int($rand->($faces)) } (1..$repeats));
                 $random *= $mul if($mul != 1 && _die_if_not_number($random));
                 return $random
             };
