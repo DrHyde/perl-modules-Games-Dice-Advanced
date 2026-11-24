@@ -26,6 +26,9 @@ loaded dice
     # roll 2 four-sided dice and a 6-sided die and return the total
     print Games::Dice::Advanced->roll('2d4', 'd6');
 
+    # roll four six-sided dice and add up the best three
+    print Games::Dice::Advanced->roll('4d6kh3');
+
     # create a four-sided die with the squares of 1, 2, 3 and 4
     Games::Dice::Advanced->new(sub { int(1+rand(4)) ** 2 });
 
@@ -104,6 +107,15 @@ evenly across the range.
 
 Creates a die dM as above which is rolled N times to generate a result.
 Note that the N is *not* just a multiplier.
+
+=item NdMkhK, NdMklK, NdMdhK, NdMdlK, eg '4d6kh3'
+
+As NdM, but only some of the N dice are added up.  C<kh> keeps the K highest
+dice, C<kl> keeps the K lowest, C<dh> drops the K highest and C<dl> drops the
+K lowest.  '4d6kh3' and '4d6dl1' are the same thing.  This is how a character
+is rolled in many games, and how advantage ('2d20kh1') and disadvantage
+('2d20kl1') work.  K must be at least 1.  You can't keep more dice than you
+roll, or drop all of them.
 
 =item N and any other valid argument, where N is a number, eg (2, 'd4')
 
@@ -196,10 +208,13 @@ sub new {
             # $self = eval("sub { (1 + int(rand($1))) * $mul }");
             my $faces = $1;
             $self = sub { (1 + int($rand->($faces))) * $mul };
-        } elsif($recipe =~ /^(\d+)d(\d+)/) {        # INTdINT
-            my($repeats, $faces) = ($1, $2);
+        } elsif($recipe =~ /^(\d+)d(\d+)(?:(kh|kl|dh|dl)(\d+))?$/) {   # INTdINT[keep/drop]
+            my($repeats, $faces, $filter, $count) = ($1, $2, $3, $4);
+            _check_keep_drop($recipe, $repeats, $filter, $count) if(defined($filter));
             $self = sub {
-                my $random = _sum(map { 1 + int($rand->($faces)) } (1..$repeats));
+                my @rolls = map { 1 + int($rand->($faces)) } (1..$repeats);
+                @rolls = _keep_drop(\@rolls, $filter, $count) if(defined($filter));
+                my $random = _sum(@rolls);
                 $random *= $mul if($mul != 1 && _die_if_not_number($random));
                 return $random
             };
@@ -222,6 +237,26 @@ sub new {
 =back
 
 =cut
+
+sub _check_keep_drop {
+    my($recipe, $repeats, $filter, $count) = @_;
+    my $max = $filter =~ /^k/ ? $repeats : $repeats - 1;
+    die("$recipe isn't valid: you can only keep or drop between 1 and $max dice\n")
+        if($count < 1 || $count > $max);
+}
+
+# Given a list of rolls, return the ones that count.  The sorting is numeric,
+# so the order of equal rolls doesn't matter to the total.
+sub _keep_drop {
+    my($rolls, $filter, $count) = @_;
+    my @ascending = sort { $a <=> $b } @{$rolls};
+    my $keep = $filter =~ /^k/ ? $count : @ascending - $count;
+    # Keeping the highest, or dropping the lowest, leaves the top of the list.
+    my $from_top = ($filter eq 'kh' || $filter eq 'dl');
+    return $from_top
+        ? (reverse @ascending)[0 .. $keep - 1]
+        : @ascending[0 .. $keep - 1];
+}
 
 sub _die_if_not_number {
     $_[0] =~ /^-?\d+(\.\d+)?(e\d+)?$/i ||
