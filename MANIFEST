@@ -9,3 +9,5 @@ t/pod.t
 ARTISTIC.txt
 CHANGELOG
 GPL2.txt
+t/rand.t
+t/keep-drop.t
